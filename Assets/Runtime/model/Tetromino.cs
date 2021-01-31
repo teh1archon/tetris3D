@@ -24,7 +24,6 @@ namespace tetris3D.model
         public const int TERTOMINO_3D_MAX_SIZE = 64;
         public const int DIMENSION_SIZE = 4;
 
-        public int[,,] MatrixPresentation { get; private set; }
         public List<Vector3Int> CubesLocalPositions { get; private set; }
         private List<Vector3Int> defaultCubesLocalPositions;
         public Vector3Int pivot { get; private set; }
@@ -32,35 +31,13 @@ namespace tetris3D.model
 
         public int MaterialID { get; private set; }
         public float DropRate { get; private set; }
-
-        public Tetromino(int[,,] matrix, Vector3Int startingPivot, int matID = 0, float rate = 0.2f)
-        {
-            if (matrix.Length != TERTOMINO_3D_MAX_SIZE)
-                throw new Exception(String.Format("illegal matrix size to instantiate Tetromino: {0}", matrix.Length));
-
-            for (int i = 0; i < 3; i++)
-            {
-                if (matrix.GetLength(0) != DIMENSION_SIZE)
-                    throw new Exception(String.Format(
-                        "illegal matrix dimension {0} with size {1} to instantiate Tetromino: ", i,
-                        matrix.GetLength(i)));
-            }
-
-            ValidatePivotLocation(startingPivot);
-            MatrixPresentation = matrix;
-            pivot = startingPivot;
-            defaultPivotPos = startingPivot;
-            MaterialID = matID;
-            DropRate = rate;
-        }
-
+        
         public Tetromino(int[] matrix, Vector3Int startingPivot, int matID = 0, float rate = 0.2f)
         {
             if (matrix.Length != TERTOMINO_3D_MAX_SIZE)
                 throw new Exception(String.Format("illegal matrix size to instantiate Tetromino: {0}", matrix.Length));
             ValidatePivotLocation(startingPivot);
 
-            MatrixPresentation = new int[DIMENSION_SIZE, DIMENSION_SIZE, DIMENSION_SIZE];
             CubesLocalPositions = new List<Vector3Int>();
             defaultCubesLocalPositions = new List<Vector3Int>();
             //fill the matrix row by row from left to right, bottom to top length, layer by layer bottom to top
@@ -70,8 +47,6 @@ namespace tetris3D.model
                 {
                     for (int x = 0; x < DIMENSION_SIZE; x++)
                     {
-                        MatrixPresentation[x, y, z] =
-                            matrix[x + DIMENSION_SIZE * z + DIMENSION_SIZE * DIMENSION_SIZE * y];
                         if (matrix[x + DIMENSION_SIZE * z + DIMENSION_SIZE * DIMENSION_SIZE * y] != 0)
                         {
                             CubesLocalPositions.Add(new Vector3Int(x, y, z));
@@ -106,38 +81,6 @@ namespace tetris3D.model
             switch (axis)
             {
                 case RotationAxis.X: //rotate YZ plane
-                    for (int x = 0; x < DIMENSION_SIZE; x++)
-                    {
-                        if (rotateClockwise)
-                        {
-                            for (int y = 0; y < DIMENSION_SIZE; y++)
-                            {
-                                for (int z = 0; z < DIMENSION_SIZE; z++)
-                                {
-                                    tempLayer[y, z] = MatrixPresentation[x, z, DIMENSION_SIZE - y - 1];
-                                }
-                            }
-                        }
-                        else
-                        {
-                            for (int y = 0; y < DIMENSION_SIZE; y++)
-                            {
-                                for (int z = 0; z < DIMENSION_SIZE; z++)
-                                {
-                                    tempLayer[y, z] = MatrixPresentation[x, DIMENSION_SIZE - z - 1, y];
-                                }
-                            }
-                        }
-
-                        for (int y = 0; y < DIMENSION_SIZE; y++)
-                        {
-                            for (int z = 0; z < DIMENSION_SIZE; z++)
-                            {
-                                MatrixPresentation[x, y, z] = tempLayer[y, z];
-                            }
-                        }
-                    }
-
                     if (rotateClockwise)
                     {
                         pivot = new Vector3Int(pivot.x, pivot.z, DIMENSION_SIZE - pivot.y - 1);
@@ -155,38 +98,6 @@ namespace tetris3D.model
 
                     break;
                 case RotationAxis.Y: //rotate XZ plane
-                    for (int y = 0; y < DIMENSION_SIZE; y++)
-                    {
-                        if (rotateClockwise)
-                        {
-                            for (int x = 0; x < DIMENSION_SIZE; x++)
-                            {
-                                for (int z = 0; z < DIMENSION_SIZE; z++)
-                                {
-                                    tempLayer[x, z] = MatrixPresentation[z, y, DIMENSION_SIZE - x - 1];
-                                }
-                            }
-                        }
-                        else
-                        {
-                            for (int x = 0; x < DIMENSION_SIZE; x++)
-                            {
-                                for (int z = 0; z < DIMENSION_SIZE; z++)
-                                {
-                                    tempLayer[x, z] = MatrixPresentation[DIMENSION_SIZE - z - 1, y, x];
-                                }
-                            }
-                        }
-
-                        for (int x = 0; x < DIMENSION_SIZE; x++)
-                        {
-                            for (int z = 0; z < DIMENSION_SIZE; z++)
-                            {
-                                MatrixPresentation[x, y, z] = tempLayer[x, z];
-                            }
-                        }
-                    }
-
                     if (rotateClockwise)
                     {
                         pivot = new Vector3Int(pivot.z, pivot.y, DIMENSION_SIZE - pivot.x - 1);
@@ -205,38 +116,6 @@ namespace tetris3D.model
                     break;
 
                 case RotationAxis.Z: //rotate XY plane
-                    for (int z = 0; z < DIMENSION_SIZE; z++)
-                    {
-                        if (rotateClockwise)
-                        {
-                            for (int x = 0; x < DIMENSION_SIZE; x++)
-                            {
-                                for (int y = 0; y < DIMENSION_SIZE; y++)
-                                {
-                                    tempLayer[x, y] = MatrixPresentation[y, DIMENSION_SIZE - x - 1, z];
-                                }
-                            }
-                        }
-                        else
-                        {
-                            for (int x = 0; x < DIMENSION_SIZE; x++)
-                            {
-                                for (int y = 0; y < DIMENSION_SIZE; y++)
-                                {
-                                    tempLayer[x, y] = MatrixPresentation[DIMENSION_SIZE - y - 1, x, z];
-                                }
-                            }
-                        }
-
-                        for (int x = 0; x < DIMENSION_SIZE; x++)
-                        {
-                            for (int y = 0; y < DIMENSION_SIZE; y++)
-                            {
-                                MatrixPresentation[x, y, z] = tempLayer[x, y];
-                            }
-                        }
-                    }
-
                     if (rotateClockwise)
                     {
                         pivot = new Vector3Int(pivot.y, DIMENSION_SIZE - pivot.x - 1, pivot.z);
